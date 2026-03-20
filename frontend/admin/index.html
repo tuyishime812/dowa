@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - DGT-SOUNDS</title>
+    <link rel="icon" type="image/png" href="../assets/images/logo.png">
+    <link rel="stylesheet" href="../assets/css/admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Login Modal -->
+    <div class="login-overlay" id="loginOverlay">
+        <div class="login-box">
+            <div class="login-header">
+                <img src="../assets/images/logo.png" alt="DGT-SOUNDS" class="login-logo">
+                <h2>Admin Login</h2>
+            </div>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label><i class="fas fa-envelope"></i> Email</label>
+                    <input type="email" id="adminEmail" placeholder="admin@dgt-sounds.com" required>
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-lock"></i> Password</label>
+                    <input type="password" id="adminPassword" placeholder="Enter password" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                </button>
+                <p class="login-hint">Default: admin@dgt-sounds.com / admin123</p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Admin Dashboard -->
+    <div class="admin-wrapper" id="adminWrapper" style="display: none;">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <img src="../assets/images/logo.png" alt="DGT-SOUNDS">
+                    <span>DGT-SOUNDS</span>
+                </div>
+                <button class="sidebar-toggle" id="sidebarToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-page="dashboard">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="nav-item" data-page="tracks">
+                    <i class="fas fa-music"></i>
+                    <span>Tracks</span>
+                </a>
+                <a href="#" class="nav-item" data-page="albums">
+                    <i class="fas fa-compact-disc"></i>
+                    <span>Albums</span>
+                </a>
+                <a href="#" class="nav-item" data-page="artists">
+                    <i class="fas fa-users"></i>
+                    <span>Artists</span>
+                </a>
+                <a href="#" class="nav-item" data-page="uploads">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <span>Upload</span>
+                </a>
+                <a href="#" class="nav-item" data-page="settings">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <button class="btn btn-logout" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="admin-main">
+            <!-- Top Bar -->
+            <header class="admin-header">
+                <div class="admin-header-left">
+                    <button class="mobile-menu-btn" id="mobileMenuBtn">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h1 id="pageTitle">Dashboard</h1>
+                </div>
+                <div class="admin-header-right">
+                    <div class="search-box">
+                        <input type="text" id="globalSearch" placeholder="Search...">
+                        <button><i class="fas fa-search"></i></button>
+                    </div>
+                    <div class="admin-profile">
+                        <img src="../assets/images/logo.png" alt="Admin" class="profile-avatar">
+                        <span class="profile-name">Admin</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard Page -->
+            <div class="admin-content" id="dashboardPage">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                            <i class="fas fa-music"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="totalTracks">0</h3>
+                            <p>Total Tracks</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                            <i class="fas fa-compact-disc"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="totalAlbums">0</h3>
+                            <p>Total Albums</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="totalArtists">0</h3>
+                            <p>Total Artists</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                            <i class="fas fa-play"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="totalPlays">0</h3>
+                            <p>Total Plays</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid">
+                    <div class="dashboard-card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-fire"></i> Top Tracks</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="top-list" id="topTracksList">
+                                <!-- Loaded dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="dashboard-card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-clock"></i> Recent Uploads</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="recent-list" id="recentUploadsList">
+                                <!-- Loaded dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tracks Page -->
+            <div class="admin-content" id="tracksPage" style="display: none;">
+                <div class="content-header">
+                    <div class="header-actions">
+                        <div class="filter-group">
+                            <select id="trackGenreFilter" class="filter-select">
+                                <option value="">All Genres</option>
+                            </select>
+                            <input type="text" id="trackSearch" placeholder="Search tracks..." class="search-input">
+                        </div>
+                        <button class="btn btn-primary" onclick="showUploadModal()">
+                            <i class="fas fa-plus"></i> Add Track
+                        </button>
+                    </div>
+                </div>
+                <div class="data-table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Cover</th>
+                                <th>Title</th>
+                                <th>Artist</th>
+                                <th>Album</th>
+                                <th>Genre</th>
+                                <th>Plays</th>
+                                <th>Duration</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tracksTableBody">
+                            <!-- Loaded dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Albums Page -->
+            <div class="admin-content" id="albumsPage" style="display: none;">
+                <div class="content-header">
+                    <div class="header-actions">
+                        <input type="text" id="albumSearch" placeholder="Search albums..." class="search-input">
+                        <button class="btn btn-primary" onclick="showAlbumModal()">
+                            <i class="fas fa-plus"></i> Add Album
+                        </button>
+                    </div>
+                </div>
+                <div class="albums-grid" id="albumsGrid">
+                    <!-- Loaded dynamically -->
+                </div>
+            </div>
+
+            <!-- Artists Page -->
+            <div class="admin-content" id="artistsPage" style="display: none;">
+                <div class="content-header">
+                    <div class="header-actions">
+                        <input type="text" id="artistSearch" placeholder="Search artists..." class="search-input">
+                        <button class="btn btn-primary" onclick="showArtistModal()">
+                            <i class="fas fa-plus"></i> Add Artist
+                        </button>
+                    </div>
+                </div>
+                <div class="artists-grid" id="artistsGrid">
+                    <!-- Loaded dynamically -->
+                </div>
+            </div>
+
+            <!-- Upload Page -->
+            <div class="admin-content" id="uploadsPage" style="display: none;">
+                <div class="upload-container">
+                    <div class="upload-card">
+                        <div class="upload-header">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <h2>Upload New Track</h2>
+                        </div>
+                        <form id="uploadForm" enctype="multipart/form-data">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Track Title *</label>
+                                    <input type="text" name="title" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Artist *</label>
+                                    <input type="text" name="artist" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Album</label>
+                                    <input type="text" name="album">
+                                </div>
+                                <div class="form-group">
+                                    <label>Genre</label>
+                                    <select name="genre">
+                                        <option value="">Select Genre</option>
+                                        <option value="Amapiano">Amapiano</option>
+                                        <option value="Afro House">Afro House</option>
+                                        <option value="Hip Hop">Hip Hop</option>
+                                        <option value="R&B">R&B</option>
+                                        <option value="Gqom">Gqom</option>
+                                        <option value="Afrobeat">Afrobeat</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Audio File *</label>
+                                <div class="file-upload">
+                                    <input type="file" name="file" accept="audio/*" id="audioFile" required>
+                                    <div class="file-upload-label">
+                                        <i class="fas fa-music"></i>
+                                        <span>Drop audio file here or click to browse</span>
+                                        <small>MP3, WAV, FLAC supported</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Cover Art</label>
+                                <div class="file-upload">
+                                    <input type="file" name="cover" accept="image/*" id="coverFile">
+                                    <div class="file-upload-label">
+                                        <i class="fas fa-image"></i>
+                                        <span>Drop image file here or click to browse</span>
+                                        <small>JPG, PNG supported (500x500px recommended)</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-actions">
+                                <button type="reset" class="btn btn-secondary">
+                                    <i class="fas fa-redo"></i> Reset
+                                </button>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-upload"></i> Upload Track
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Page -->
+            <div class="admin-content" id="settingsPage" style="display: none;">
+                <div class="settings-container">
+                    <div class="settings-card">
+                        <h3><i class="fas fa-user-cog"></i> Admin Settings</h3>
+                        <form id="settingsForm">
+                            <div class="form-group">
+                                <label>Admin Email</label>
+                                <input type="email" value="admin@dgt-sounds.com">
+                            </div>
+                            <div class="form-group">
+                                <label>Change Password</label>
+                                <input type="password" placeholder="New password">
+                            </div>
+                            <div class="form-group">
+                                <label>Site Name</label>
+                                <input type="text" value="DGT-SOUNDS">
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Save Settings
+                            </button>
+                        </form>
+                    </div>
+                    <div class="settings-card">
+                        <h3><i class="fas fa-database"></i> Database Management</h3>
+                        <div class="settings-actions">
+                            <button class="btn btn-secondary">
+                                <i class="fas fa-download"></i> Export Data
+                            </button>
+                            <button class="btn btn-secondary">
+                                <i class="fas fa-upload"></i> Import Data
+                            </button>
+                            <button class="btn btn-danger">
+                                <i class="fas fa-trash"></i> Clear All Data
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Track Edit Modal -->
+    <div class="modal" id="trackModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="trackModalTitle">Edit Track</h3>
+                <button class="modal-close" onclick="closeTrackModal()">&times;</button>
+            </div>
+            <form id="trackEditForm">
+                <input type="hidden" name="id" id="editTrackId">
+                <div class="form-group">
+                    <label>Title *</label>
+                    <input type="text" name="title" id="editTitle" required>
+                </div>
+                <div class="form-group">
+                    <label>Artist *</label>
+                    <input type="text" name="artist" id="editArtist" required>
+                </div>
+                <div class="form-group">
+                    <label>Album</label>
+                    <input type="text" name="album" id="editAlbum">
+                </div>
+                <div class="form-group">
+                    <label>Genre</label>
+                    <select name="genre" id="editGenre">
+                        <option value="">Select Genre</option>
+                        <option value="Amapiano">Amapiano</option>
+                        <option value="Afro House">Afro House</option>
+                        <option value="Hip Hop">Hip Hop</option>
+                        <option value="R&B">R&B</option>
+                        <option value="Gqom">Gqom</option>
+                        <option value="Afrobeat">Afrobeat</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeTrackModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal" id="deleteModal">
+        <div class="modal-content modal-sm">
+            <div class="modal-header">
+                <h3>Confirm Delete</h3>
+                <button class="modal-close" onclick="closeDeleteModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this item? This action cannot be undone.</p>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+                <button class="btn btn-danger" id="confirmDeleteBtn">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="assets/js/admin.js"></script>
+</body>
+</html>
