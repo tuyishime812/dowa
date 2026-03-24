@@ -398,6 +398,35 @@ button {
     margin-right: 5px;
 }
 
+.track-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-color);
+}
+
+.action-btn {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    background: var(--bg-hover);
+    color: var(--text-secondary);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+    text-decoration: none;
+}
+
+.action-btn:hover {
+    background: var(--primary-color);
+    color: var(--text-primary);
+    transform: scale(1.1);
+}
+
 .play-overlay {
     position: absolute;
     top: 0;
@@ -1139,4 +1168,188 @@ button {
     50% {
         box-shadow: 0 0 0 15px rgba(255, 107, 0, 0);
     }
+}
+
+/* Share Modal */
+.share-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 3000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: var(--transition);
+}
+
+.share-modal.active {
+    opacity: 1;
+}
+
+.share-modal-content {
+    background: var(--bg-card);
+    border-radius: var(--border-radius-md);
+    width: 90%;
+    max-width: 400px;
+    overflow: hidden;
+}
+
+.share-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.share-modal-header h3 {
+    font-size: 1.2rem;
+}
+
+.share-modal-close {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+.share-modal-body {
+    padding: 15px;
+}
+
+.share-option {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    margin-bottom: 10px;
+    background: var(--bg-hover);
+    border-radius: var(--border-radius-sm);
+    text-decoration: none;
+    color: var(--text-primary);
+    transition: var(--transition);
+}
+
+.share-option:hover {
+    transform: translateX(5px);
+    background: var(--bg-hover);
+}
+
+.share-option i {
+    font-size: 1.5rem;
+}
+
+/* Track Detail Modal */
+.track-detail-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 3000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: var(--transition);
+}
+
+.track-detail-modal.active {
+    opacity: 1;
+}
+
+.track-detail-content {
+    background: var(--bg-card);
+    border-radius: var(--border-radius-md);
+    width: 90%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    padding: 25px;
+}
+
+.track-detail-close {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+.track-detail-header {
+    display: flex;
+    gap: 25px;
+    margin-bottom: 25px;
+}
+
+.track-detail-cover {
+    width: 200px;
+    height: 200px;
+    border-radius: var(--border-radius-md);
+    object-fit: cover;
+    background: var(--bg-hover);
+}
+
+.track-detail-info h2 {
+    font-size: 1.8rem;
+    margin-bottom: 10px;
+}
+
+.track-detail-artist {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    margin-bottom: 10px;
+}
+
+.track-detail-album {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    margin-bottom: 10px;
+}
+
+.track-detail-genre {
+    display: inline-block;
+    padding: 5px 15px;
+    background: var(--primary-color);
+    color: var(--text-primary);
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.track-detail-stats {
+    margin-top: 15px;
+    color: var(--text-muted);
+}
+
+.track-detail-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-color);
+}
+
+.track-detail-actions .btn {
+    flex: 1;
+    min-width: 120px;
+}
+
+/* Track Item Actions */
+.track-item-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
 }

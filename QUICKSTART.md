@@ -1,13 +1,64 @@
 # DGT-SOUNDS - Quick Start Guide
 
-## 🚀 Servers Running
+## 🚀 Quick Setup
 
-| Service | URL | Status |
-|---------|-----|--------|
-| **Main Site** | http://localhost:3000 | ✅ Running |
-| **Admin Dashboard** | http://localhost:3000/admin/index.html | ✅ Running |
-| **Backend API** | http://localhost:8000 | ✅ Running |
-| **API Docs** | http://localhost:8000/docs | ✅ Running |
+### 1. Install Dependencies
+```bash
+cd backend
+python -m venv venv
+venv\Scripts\activate  # Windows
+pip install -r requirements.txt
+```
+
+### 2. Configure Environment
+```bash
+# Copy example env file
+copy .env.example .env  # Windows
+# or cp .env.example .env  # Mac/Linux
+
+# Edit .env with your Firebase and Supabase credentials
+```
+
+### 3. Add Firebase Credentials
+- Download `firebase_credentials.json` from Firebase Console
+- Place it in the `backend/` folder
+
+### 4. Test Connections (Optional but Recommended)
+```bash
+cd backend
+python test_connections.py
+```
+This will verify that Firebase and Supabase are configured correctly.
+
+### 5. Add Sample Data (Optional)
+```bash
+python setup_database.py
+```
+This creates sample artists, albums, and tracks in your database.
+
+### 6. Start Servers
+
+**Backend:**
+```bash
+python main.py
+```
+
+**Frontend (new terminal):**
+```bash
+cd ../frontend
+python -m http.server 3000
+```
+
+---
+
+## 🔗 Access URLs
+
+| Service | URL |
+|---------|-----|
+| **Main Site** | http://localhost:3000 |
+| **Admin Dashboard** | http://localhost:3000/admin/index.html |
+| **Backend API** | http://localhost:8000 |
+| **API Docs** | http://localhost:8000/docs |
 
 ---
 
@@ -19,44 +70,43 @@
 
 ---
 
-## 📋 Admin Dashboard Features
+## 📋 Required Setup
 
-### Dashboard (Home)
-- View total tracks, albums, artists, and plays
-- See top 5 trending tracks
-- View recent uploads
+### Firebase Firestore
+1. Go to [Firebase Console](https://console.firebase.google.com/)
+2. Create a new project
+3. Enable **Firestore Database**
+4. Go to **Project Settings** → **Service accounts**
+5. Click **Generate new private key**
+6. Save as `firebase_credentials.json` in `backend/` folder
 
-### Tracks Management
-- View all tracks in a table
-- Search and filter by genre
-- Edit track details (title, artist, album, genre)
-- Delete tracks
-- Play preview
+### Supabase Storage
+1. Go to [Supabase](https://supabase.com)
+2. Create a new project
+3. Go to **Storage** → Create two buckets:
+   - **Bucket 1:** `tracks` (Public) - for audio files
+   - **Bucket 2:** `covers` (Public) - for images
+4. Go to **SQL Editor** → Run the SQL from `backend/supabase_policies.sql`
+5. Go to **Settings** → **API**
+6. Copy your **Project URL** and **anon key**
 
-### Upload Page
-- Drag & drop audio files
-- Upload cover art
-- Fill in track metadata
-- Support for MP3, WAV, FLAC
+### Update .env File
+```env
+# Firebase
+FIREBASE_CREDENTIALS_PATH=./firebase_credentials.json
+FIREBASE_DATABASE_URL=https://your-project-id.firebaseio.com
 
-### Albums Management
-- View all albums in grid
-- Add new albums
-- Edit album details
-- Delete albums
-
-### Artists Management
-- View all artists
-- Add new artists
-- Edit artist info and images
-- Delete artists
+# Supabase Storage
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_KEY=your-anon-key-here
+```
 
 ---
 
 ## 🎯 Quick Actions
 
 ### Upload a Track
-1. Click "Upload" in sidebar
+1. Click "Upload" in admin sidebar
 2. Fill in track details (Title, Artist, Album, Genre)
 3. Drag audio file or click to browse
 4. Add cover art (optional)
@@ -96,16 +146,6 @@ ADMIN_PASSWORD=your_new_password
 ```
 Then restart the backend server.
 
-### Connect Supabase
-1. Create account at https://supabase.com
-2. Create new project
-3. Run SQL from `backend/supabase_schema.sql`
-4. Update `backend/.env`:
-```env
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_KEY=your-anon-key
-```
-
 ---
 
 ## 📁 File Structure
@@ -113,10 +153,12 @@ SUPABASE_KEY=your-anon-key
 ```
 dowa/
 ├── backend/
-│   ├── main.py              # FastAPI server
-│   ├── .env                 # Configuration
-│   ├── requirements.txt     # Dependencies
-│   └── uploads/             # Uploaded files
+│   ├── main.py                    # FastAPI server
+│   ├── firebase_client.py         # Firebase client
+│   ├── supabase_storage_client.py # Supabase Storage client
+│   ├── .env                       # Configuration
+│   ├── requirements.txt           # Dependencies
+│   └── firebase_credentials.json  # (do not commit!)
 │
 ├── frontend/
 │   ├── index.html           # Main site
@@ -124,13 +166,8 @@ dowa/
 │   │   └── index.html       # Admin dashboard
 │   └── assets/
 │       ├── css/
-│       │   ├── style.css    # Main styles
-│       │   └── admin.css    # Admin styles
 │       ├── js/
-│       │   ├── app.js       # Main site JS
-│       │   └── admin.js     # Admin JS
 │       └── images/
-│           └── logo.png
 │
 └── README.md
 ```
@@ -143,23 +180,28 @@ dowa/
 ```bash
 cd backend
 venv\Scripts\activate
+pip install -r requirements.txt
 python main.py
 ```
+
+### Firebase credentials error?
+- Ensure `firebase_credentials.json` exists in `backend/` folder
+- Verify file is valid JSON from Firebase Console
+
+### Supabase Storage upload error?
+- Check SUPABASE_URL and SUPABASE_KEY in `.env`
+- Verify buckets `tracks` and `covers` exist
+- Ensure buckets are set to **Public**
 
 ### Can't login to admin?
 - Check backend is running
 - Use default credentials: admin@dgt-sounds.com / admin123
 - Clear browser cache
 
-### Upload not working?
-- Ensure backend is running
-- Check file size (max depends on server config)
-- Supported formats: MP3, WAV, FLAC for audio; JPG, PNG for images
-
 ---
 
 ## 📞 Need Help?
 
-Check the full README.md for detailed documentation.
+Check the full [README.md](README.md) or [FIRESTORE_SCHEMA.md](backend/FIRESTORE_SCHEMA.md) for detailed documentation.
 
 **Enjoy DGT-SOUNDS! 🎵**

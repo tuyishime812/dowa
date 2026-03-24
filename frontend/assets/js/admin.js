@@ -26,60 +26,82 @@ function checkAuth() {
 function initializeEventListeners() {
     // Login
     document.getElementById('loginForm')?.addEventListener('submit', handleLogin);
-    
+
     // Logout
     document.getElementById('logoutBtn')?.addEventListener('click', handleLogout);
-    
+
     // Sidebar toggle
     document.getElementById('sidebarToggle')?.addEventListener('click', () => {
         document.getElementById('sidebar').classList.toggle('collapsed');
     });
-    
+
     // Mobile menu
     document.getElementById('mobileMenuBtn')?.addEventListener('click', () => {
         document.getElementById('sidebar').classList.toggle('active');
     });
-    
+
     // Navigation
     document.querySelectorAll('.nav-item').forEach(item => {
         item.addEventListener('click', (e) => {
             e.preventDefault();
             const page = item.dataset.page;
             navigateTo(page);
-            
+
             // Mobile: close sidebar after navigation
             if (window.innerWidth <= 768) {
                 document.getElementById('sidebar').classList.remove('active');
             }
         });
     });
-    
+
     // Upload form
     document.getElementById('uploadForm')?.addEventListener('submit', handleUpload);
-    
+
     // Track edit form
     document.getElementById('trackEditForm')?.addEventListener('submit', handleTrackUpdate);
-    
+
+    // Album create form
+    document.getElementById('albumCreateForm')?.addEventListener('submit', handleAlbumCreate);
+
+    // Artist create form
+    document.getElementById('artistCreateForm')?.addEventListener('submit', handleArtistCreate);
+
     // Settings form
     document.getElementById('settingsForm')?.addEventListener('submit', (e) => {
         e.preventDefault();
         showToast('Settings saved successfully!', 'success');
     });
-    
+
     // Search
     document.getElementById('globalSearch')?.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
             performGlobalSearch(e.target.value);
         }
     });
-    
+
     // Track search
     document.getElementById('trackSearch')?.addEventListener('input', (e) => {
         filterTracks(e.target.value);
     });
-    
+
     // File upload drag & drop
     setupFileUpload();
+
+    // Modal close buttons
+    document.querySelectorAll('.modal-close').forEach(btn => {
+        btn.addEventListener('click', function() {
+            this.closest('.modal').classList.remove('active');
+        });
+    });
+
+    // Close modals on outside click
+    document.querySelectorAll('.modal').forEach(modal => {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.classList.remove('active');
+            }
+        });
+    });
 }
 
 async function handleLogin(e) {
@@ -284,10 +306,10 @@ async function loadTracks() {
                             <button class="btn-icon play" onclick="playTrack('${track.file_url}')" title="Play">
                                 <i class="fas fa-play"></i>
                             </button>
-                            <button class="btn-icon edit" onclick="editTrack(${track.id}, '${escapeHtml(track.title)}', '${escapeHtml(track.artist)}', '${escapeHtml(track.album || '')}', '${track.genre || ''}')" title="Edit">
+                            <button class="btn-icon edit" onclick="editTrack('${track.id}', '${escapeHtml(track.title)}', '${escapeHtml(track.artist)}', '${escapeHtml(track.album || '')}', '${track.genre || ''}')" title="Edit">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            <button class="btn-icon delete" onclick="confirmDelete('track', ${track.id})" title="Delete">
+                            <button class="btn-icon delete" onclick="confirmDelete('track', '${track.id}')" title="Delete">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </div>
@@ -404,7 +426,7 @@ async function loadAlbums() {
                         <button class="btn-icon edit" title="Edit">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button class="btn-icon delete" onclick="confirmDelete('album', ${album.id})" title="Delete">
+                        <button class="btn-icon delete" onclick="confirmDelete('album', '${album.id}')" title="Delete">
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>
@@ -420,7 +442,38 @@ async function loadAlbums() {
 }
 
 function showAlbumModal() {
-    showToast('Album upload - implement album creation endpoint', 'warning');
+    document.getElementById('albumModal').classList.add('active');
+}
+
+function closeAlbumModal() {
+    document.getElementById('albumModal').classList.remove('active');
+}
+
+async function handleAlbumCreate(e) {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const token = localStorage.getItem('adminToken');
+
+    try {
+        const response = await fetch(`${API_BASE}/admin/albums`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token || ''}`
+            },
+            body: formData
+        });
+
+        if (response.ok) {
+            showToast('Album created successfully!', 'success');
+            closeAlbumModal();
+            loadAlbums();
+        } else {
+            const error = await response.json();
+            showToast(error.detail || 'Create failed', 'error');
+        }
+    } catch (error) {
+        showToast('Create failed. Make sure backend is running.', 'error');
+    }
 }
 
 // Artists Management
@@ -446,7 +499,7 @@ async function loadArtists() {
                         <button class="btn-icon edit" title="Edit">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button class="btn-icon delete" onclick="confirmDelete('artist', ${artist.id})" title="Delete">
+                        <button class="btn-icon delete" onclick="confirmDelete('artist', '${artist.id}')" title="Delete">
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>
@@ -462,7 +515,38 @@ async function loadArtists() {
 }
 
 function showArtistModal() {
-    showToast('Artist creation - implement artist endpoint', 'warning');
+    document.getElementById('artistModal').classList.add('active');
+}
+
+function closeArtistModal() {
+    document.getElementById('artistModal').classList.remove('active');
+}
+
+async function handleArtistCreate(e) {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const token = localStorage.getItem('adminToken');
+
+    try {
+        const response = await fetch(`${API_BASE}/admin/artists`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token || ''}`
+            },
+            body: formData
+        });
+
+        if (response.ok) {
+            showToast('Artist created successfully!', 'success');
+            closeArtistModal();
+            loadArtists();
+        } else {
+            const error = await response.json();
+            showToast(error.detail || 'Create failed', 'error');
+        }
+    } catch (error) {
+        showToast('Create failed. Make sure backend is running.', 'error');
+    }
 }
 
 // Delete Functionality

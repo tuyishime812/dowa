@@ -325,6 +325,9 @@ async function performSearch() {
 
 // Track Card HTML
 function createTrackCard(track, index) {
+    const trackSlug = createTrackSlug(track);
+    const trackUrl = `${window.location.origin}/track/${track.id}`;
+    
     return `
         <div class="track-card" onclick="playTrackFromQueue(${index}, 'featured')">
             <div class="play-overlay">
@@ -338,6 +341,20 @@ function createTrackCard(track, index) {
                     <span><i class="fas fa-play"></i> ${formatNumber(track.plays)}</span>
                     ${track.genre ? `<span><i class="fas fa-tag"></i> ${track.genre}</span>` : ''}
                 </div>
+                <div class="track-actions">
+                    <button class="action-btn" onclick="event.stopPropagation(); downloadTrack('${track.file_url}', '${escapeHtml(track.title)}')" title="Download">
+                        <i class="fas fa-download"></i>
+                    </button>
+                    <button class="action-btn" onclick="event.stopPropagation(); shareTrack('${escapeHtml(track.title)}', '${escapeHtml(track.artist)}', '${trackUrl}')" title="Share">
+                        <i class="fas fa-share-alt"></i>
+                    </button>
+                    <button class="action-btn" onclick="event.stopPropagation(); copyLink('${trackUrl}')" title="Copy Link">
+                        <i class="fas fa-link"></i>
+                    </button>
+                    <a href="#/track/${track.id}" class="action-btn" onclick="event.stopPropagation(); openTrackDetail('${track.id}')" title="View Details">
+                        <i class="fas fa-info-circle"></i>
+                    </a>
+                </div>
             </div>
         </div>
     `;
@@ -345,6 +362,8 @@ function createTrackCard(track, index) {
 
 // Track List Item HTML
 function createTrackListItem(track, index) {
+    const trackUrl = `${window.location.origin}/track/${track.id}`;
+    
     return `
         <div class="track-item" onclick="playTrackFromQueue(${index}, 'all')">
             <img src="${track.cover_url || 'assets/images/logo.png'}" alt="${track.title}" class="track-item-image" onerror="this.src='assets/images/logo.png'">
@@ -352,10 +371,20 @@ function createTrackListItem(track, index) {
                 <h4 class="track-item-title">${track.title}</h4>
                 <p class="track-item-artist">${track.artist}</p>
             </div>
-            <span class="track-item-plays"><i class="fas fa-play"></i> ${formatNumber(track.plays)}</span>
-            <button class="track-item-btn" onclick="event.stopPropagation(); playTrackFromQueue(${index}, 'all')">
-                <i class="fas fa-play"></i>
-            </button>
+            <div class="track-item-actions">
+                <button class="track-item-btn" onclick="event.stopPropagation(); downloadTrack('${track.file_url}', '${escapeHtml(track.title)}')" title="Download">
+                    <i class="fas fa-download"></i>
+                </button>
+                <button class="track-item-btn" onclick="event.stopPropagation(); shareTrack('${escapeHtml(track.title)}', '${escapeHtml(track.artist)}', '${trackUrl}')" title="Share">
+                    <i class="fas fa-share-alt"></i>
+                </button>
+                <button class="track-item-btn" onclick="event.stopPropagation(); copyLink('${trackUrl}')" title="Copy Link">
+                    <i class="fas fa-link"></i>
+                </button>
+                <button class="track-item-btn" onclick="event.stopPropagation(); playTrackFromQueue(${index}, 'all')">
+                    <i class="fas fa-play"></i>
+                </button>
+            </div>
         </div>
     `;
 }
@@ -534,9 +563,9 @@ function updateVolumeIcon() {
 // Upload Functions
 async function handleUpload(e) {
     e.preventDefault();
-    
+
     const formData = new FormData(uploadForm);
-    
+
     try {
         const response = await fetch(`${API_BASE_URL}/tracks`, {
             method: 'POST',
@@ -555,6 +584,148 @@ async function handleUpload(e) {
     } catch (error) {
         showToast('Upload failed. Make sure the server is running.', 'error');
     }
+}
+
+// New Track Actions Functions
+function downloadTrack(fileUrl, title) {
+    if (!fileUrl) {
+        showToast('Download not available for this track', 'warning');
+        return;
+    }
+    
+    // Create download link
+    const link = document.createElement('a');
+    link.href = fileUrl;
+    link.download = `${title || 'track'}.mp3`;
+    link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    showToast('Download started!', 'success');
+}
+
+function shareTrack(title, artist, trackUrl) {
+    const shareData = {
+        title: title,
+        text: `Check out "${title}" by ${artist} on DGT-SOUNDS!`,
+        url: trackUrl
+    };
+    
+    // Check if Web Share API is supported
+    if (navigator.share) {
+        navigator.share(shareData)
+            .then(() => showToast('Shared successfully!', 'success'))
+            .catch((error) => console.log('Share failed:', error));
+    } else {
+        // Fallback: show share options
+        const shareOptions = `
+            Share "${title}" by ${artist}:
+            %0A%0A🎵 ${shareData.text}
+            %0A🔗 ${trackUrl}
+        `;
+        
+        const options = [
+            { name: 'WhatsApp', url: `https://wa.me/?text=${shareOptions}`, icon: 'fab fa-whatsapp', color: '#25D366' },
+            { name: 'Facebook', url: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(trackUrl)}`, icon: 'fab fa-facebook', color: '#1877F2' },
+            { name: 'Twitter', url: `https://twitter.com/intent/tweet?text=${shareData.text}&url=${encodeURIComponent(trackUrl)}`, icon: 'fab fa-twitter', color: '#1DA1F2' },
+            { name: 'Copy Link', action: 'copy', icon: 'fas fa-link', color: 'var(--primary-color)' }
+        ];
+        
+        const modal = document.createElement('div');
+        modal.className = 'share-modal';
+        modal.innerHTML = `
+            <div class="share-modal-content">
+                <div class="share-modal-header">
+                    <h3>Share "${title}"</h3>
+                    <button class="share-modal-close" onclick="this.closest('.share-modal').remove()">&times;</button>
+                </div>
+                <div class="share-modal-body">
+                    ${options.map(opt => `
+                        <a href="${opt.url}" target="_blank" class="share-option" style="border-left: 4px solid ${opt.color};" 
+                           onclick="${opt.action === 'copy' ? `event.preventDefault(); copyLink('${trackUrl}'); this.closest('.share-modal').remove();` : ''}">
+                            <i class="${opt.icon}" style="color: ${opt.color};"></i>
+                            <span>${opt.name}</span>
+                        </a>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        setTimeout(() => modal.classList.add('active'), 10);
+    }
+}
+
+function copyLink(url) {
+    navigator.clipboard.writeText(url).then(() => {
+        showToast('Link copied to clipboard!', 'success');
+    }).catch(() => {
+        // Fallback for older browsers
+        const input = document.createElement('input');
+        input.value = url;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand('copy');
+        document.body.removeChild(input);
+        showToast('Link copied to clipboard!', 'success');
+    });
+}
+
+function openTrackDetail(trackId) {
+    // Fetch track details and show in modal
+    fetch(`${API_BASE_URL}/tracks/${trackId}`)
+        .then(res => res.json())
+        .then(track => {
+            if (track) {
+                const trackUrl = `${window.location.origin}/track/${trackId}`;
+                const modal = document.createElement('div');
+                modal.className = 'track-detail-modal';
+                modal.innerHTML = `
+                    <div class="track-detail-content">
+                        <button class="track-detail-close" onclick="this.closest('.track-detail-modal').remove()">&times;</button>
+                        <div class="track-detail-header">
+                            <img src="${track.cover_url || 'assets/images/logo.png'}" alt="${track.title}" class="track-detail-cover" onerror="this.src='assets/images/logo.png'">
+                            <div class="track-detail-info">
+                                <h2>${track.title}</h2>
+                                <p class="track-detail-artist">${track.artist}</p>
+                                ${track.album ? `<p class="track-detail-album">Album: ${track.album}</p>` : ''}
+                                ${track.genre ? `<span class="track-detail-genre">${track.genre}</span>` : ''}
+                                <div class="track-detail-stats">
+                                    <span><i class="fas fa-play"></i> ${formatNumber(track.plays)} plays</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="track-detail-actions">
+                            <button class="btn btn-primary" onclick="playTrackFromQueue(0, 'detail'); this.closest('.track-detail-modal').remove();">
+                                <i class="fas fa-play"></i> Play
+                            </button>
+                            <button class="btn btn-secondary" onclick="downloadTrack('${track.file_url}', '${escapeHtml(track.title)}')">
+                                <i class="fas fa-download"></i> Download
+                            </button>
+                            <button class="btn btn-secondary" onclick="shareTrack('${escapeHtml(track.title)}', '${escapeHtml(track.artist)}', '${trackUrl}')">
+                                <i class="fas fa-share-alt"></i> Share
+                            </button>
+                            <button class="btn btn-secondary" onclick="copyLink('${trackUrl}')">
+                                <i class="fas fa-link"></i> Copy Link
+                            </button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+                setTimeout(() => modal.classList.add('active'), 10);
+                
+                // Add to queue for playing
+                state.detailQueue = [track];
+            }
+        })
+        .catch(err => showToast('Error loading track details', 'error'));
+}
+
+function createTrackSlug(track) {
+    // Create URL-friendly slug from track title and artist
+    const title = track.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    const artist = track.artist.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    return `${artist}-${title}`;
 }
 
 // Utility Functions

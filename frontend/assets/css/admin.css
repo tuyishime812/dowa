@@ -703,6 +703,18 @@ body {
     outline: none;
 }
 
+.form-group small {
+    display: block;
+    margin-top: 5px;
+    color: var(--gray);
+    font-size: 0.85rem;
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
 .file-upload {
     position: relative;
     border: 2px dashed var(--border);

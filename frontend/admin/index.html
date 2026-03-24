@@ -411,9 +411,86 @@
         </div>
     </div>
 
+    <!-- Album Create Modal -->
+    <div class="modal" id="albumModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add New Album</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <form id="albumCreateForm" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label>Album Title *</label>
+                    <input type="text" name="title" required>
+                </div>
+                <div class="form-group">
+                    <label>Artist ID *</label>
+                    <input type="text" name="artist_id" required placeholder="Enter artist ID">
+                    <small style="color: var(--gray);">Find artist ID in Artists section</small>
+                </div>
+                <div class="form-group">
+                    <label>Release Year</label>
+                    <input type="number" name="release_year" placeholder="2024">
+                </div>
+                <div class="form-group">
+                    <label>Album Cover</label>
+                    <div class="file-upload">
+                        <input type="file" name="cover" accept="image/*">
+                        <div class="file-upload-label">
+                            <i class="fas fa-image"></i>
+                            <span>Drop image or click to browse</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeAlbumModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Create Album
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Artist Create Modal -->
+    <div class="modal" id="artistModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add New Artist</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <form id="artistCreateForm" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label>Artist Name *</label>
+                    <input type="text" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label>Biography</label>
+                    <textarea name="bio" rows="4" placeholder="Artist biography..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Artist Image</label>
+                    <div class="file-upload">
+                        <input type="file" name="image" accept="image/*">
+                        <div class="file-upload-label">
+                            <i class="fas fa-image"></i>
+                            <span>Drop image or click to browse</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeArtistModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Create Artist
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Toast Notification -->
     <div class="toast-container" id="toastContainer"></div>
 
-    <script src="assets/js/admin.js"></script>
+    <script src="../assets/js/admin.js"></script>
 </body>
 </html>
