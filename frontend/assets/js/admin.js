@@ -3,7 +3,9 @@
  * Full CRUD management for tracks, albums, and artists
  */
 
-const API_BASE = 'http://localhost:8000/api';
+// API Configuration
+// Uses window.API_BASE_URL if set (from index.html), otherwise defaults to localhost
+const API_BASE = (window.API_BASE_URL || 'http://localhost:8000') + '/api';
 
 // State
 let currentUser = null;

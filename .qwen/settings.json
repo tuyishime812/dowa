@@ -5,7 +5,9 @@
       "WebFetch(hwpsvbjeoibxunosztip.supabase.co)",
       "Bash(pip install *)",
       "Bash(curl *)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git push *)"
     ]
   },
   "$version": 3

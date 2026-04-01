@@ -4,7 +4,8 @@
  */
 
 // API Configuration
-const API_BASE_URL = 'http://localhost:8000/api';
+// Uses window.API_BASE_URL if set (from index.html), otherwise defaults to localhost
+const API_BASE_URL = (window.API_BASE_URL || 'http://localhost:8000') + '/api';
 
 // State Management
 const state = {
