@@ -8,8 +8,8 @@ Complete guide to deploy your music streaming platform to production.
 
 | Component | Recommended Service | Alternative |
 |-----------|-------------------|-------------|
-| **Backend** | Railway | Render, Heroku |
-| **Frontend** | Netlify | Vercel, Cloudflare Pages |
+| **Backend** | **Render** | Railway, Heroku |
+| **Frontend** | **Vercel** | Netlify, Cloudflare Pages |
 | **Database** | Supabase PostgreSQL | (already configured) |
 | **Storage** | Supabase Storage | (already configured) |
 
@@ -21,8 +21,8 @@ Before deploying, ensure you have:
 
 - ✅ [GitHub account](https://github.com)
 - ✅ [Supabase account](https://supabase.com) (free tier available)
-- ✅ [Railway account](https://railway.app) (free trial available)
-- ✅ [Netlify account](https://netlify.com) (free tier available)
+- ✅ [Render account](https://render.com) (free tier available)
+- ✅ [Vercel account](https://vercel.com) (free tier available)
 
 ---
 
@@ -50,7 +50,7 @@ HOST=0.0.0.0
 PORT=8000
 
 # CORS Settings (update with production URLs)
-ALLOWED_ORIGINS=https://your-domain.com,https://www.your-domain.com
+ALLOWED_ORIGINS=https://your-domain.vercel.app,https://your-custom-domain.com
 
 # Admin Credentials (change for production!)
 ADMIN_EMAIL=admin@dgt-sounds.com
@@ -110,94 +110,151 @@ You'll need these for backend and frontend.
 
 ---
 
-## 🔧 Step 3: Deploy Backend (Railway)
+## 🔧 Step 3: Deploy Backend (Render)
 
-### 3.1 Connect GitHub to Railway
+### 3.1 Connect GitHub to Render
 
-1. Go to [Railway](https://railway.app)
+1. Go to [Render](https://render.com)
 2. Click **"Login"** → **"Sign in with GitHub"**
-3. Authorize Railway
+3. Authorize Render
 
-### 3.2 Create New Project
+### 3.2 Create New Web Service
 
-1. Click **"New Project"**
-2. Select **"Deploy from GitHub repo"**
-3. Choose your repository: `dowa`
-4. Railway will auto-detect it's a Python project
+1. Click **"New +"** → **"Web Service"**
+2. Choose **"Connect a repository"**
+3. Select your repository: `dowa`
+4. Render will auto-detect it's a Python project
 
 ### 3.3 Configure Service
 
-1. Click on your service
-2. Go to **"Settings"** tab
-3. Set **Root Directory:** `backend`
-4. Set **Start Command:** `uvicorn main:app --host 0.0.0.0 --port $PORT`
+Fill in the settings:
 
-### 3.4 Add Environment Variables
+| Setting | Value |
+|---------|-------|
+| **Name** | `dgt-sounds-api` (or your choice) |
+| **Region** | Choose closest to your users |
+| **Branch** | `main` |
+| **Root Directory** | `backend` |
+| **Runtime** | `Python 3` |
+| **Build Command** | `pip install -r requirements.txt` |
+| **Start Command** | `uvicorn main:app --host 0.0.0.0 --port $PORT` |
 
-In Railway dashboard → **Variables** → **"Add Variable"**:
+### 3.4 Choose Plan
+
+- **Free Tier**: Good for testing (spins down after inactivity)
+- **Starter ($7/month)**: Always on, custom domains
+
+### 3.5 Add Environment Variables
+
+Click **"Advanced"** → **"Add Environment Variable"**:
 
 ```
 SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_KEY=your-anon-key-here
 HOST=0.0.0.0
 PORT=8000
-ALLOWED_ORIGINS=https://your-domain.netlify.app,https://your-custom-domain.com
+ALLOWED_ORIGINS=https://your-domain.vercel.app,https://your-custom-domain.com
 ADMIN_EMAIL=admin@dgt-sounds.com
 ADMIN_PASSWORD=your-secure-password
 ```
 
-### 3.5 Deploy
+### 3.6 Deploy
 
-1. Railway will auto-deploy after you add variables
-2. Go to **"Deployments"** tab to watch progress
-3. Once deployed, copy your **Public URL** (e.g., `https://dowa-production.up.railway.app`)
+1. Click **"Create Web Service"**
+2. Render will build and deploy (watch logs in **Logs** tab)
+3. Once deployed, copy your **Public URL** (e.g., `https://dgt-sounds-api.onrender.com`)
 
-### 3.6 Test Backend
+### 3.7 Test Backend
 
 ```bash
-curl https://your-railway-url.up.railway.app/api/health
+curl https://your-render-url.onrender.com/api/health
 ```
 
 Should return: `{"status": "healthy", "message": "DGT-SOUNDS API is running"}`
 
+⚠️ **Note**: Free tier services spin down after 15 minutes of inactivity. First request after spin-down takes ~30 seconds to wake up.
+
 ---
 
-## 🎨 Step 4: Deploy Frontend (Netlify)
+## 🎨 Step 4: Deploy Frontend (Vercel)
 
 ### 4.1 Prepare Frontend
 
-Update the API URL in `frontend/assets/js/app.js`:
+The frontend is already configured to use `window.API_BASE_URL`.
 
-```javascript
-// Change this line:
-const API_BASE_URL = 'http://localhost:8000';
-
-// To your Railway backend URL:
-const API_BASE_URL = 'https://your-railway-url.up.railway.app';
-```
-
-Or use environment variable (better):
-
-```javascript
-const API_BASE_URL = window.API_BASE_URL || 'http://localhost:8000';
-```
-
-Then add to `frontend/index.html` before the script:
+Update `frontend/index.html` (line ~289):
 
 ```html
 <script>
-    window.API_BASE_URL = 'https://your-railway-url.up.railway.app';
+    // Change this to your Render backend URL
+    window.API_BASE_URL = 'https://your-render-url.onrender.com';
 </script>
-<script src="assets/js/app.js"></script>
 ```
 
-### 4.2 Deploy to Netlify
+Also update `frontend/admin/index.html` (line ~495) with the same URL.
+
+### 4.2 Deploy to Vercel
 
 #### Option A: Deploy via GitHub (Recommended)
 
-1. Go to [Netlify](https://netlify.com)
-2. Click **"Add new site"** → **"Import an existing project"**
-3. Connect to GitHub
+1. Go to [Vercel](https://vercel.com)
+2. Click **"Add New..."** → **"Project"**
+3. Under **"Import Git Repository"**, find and select `dowa`
+4. Click **"Import"**
+
+### 4.3 Configure Project
+
+In the project configuration:
+
+| Setting | Value |
+|---------|-------|
+| **Framework Preset** | `Other` |
+| **Root Directory** | `./frontend` |
+| **Build Command** | `echo "No build needed"` |
+| **Output Directory** | `./frontend` |
+
+### 4.4 Add Environment Variables (Optional)
+
+Click **"Environment Variables"** → **"Add"**:
+
+```
+API_BASE_URL=https://your-render-url.onrender.com
+```
+
+### 4.5 Deploy
+
+1. Click **"Deploy"**
+2. Vercel will build and deploy (~30 seconds)
+3. Once done, you'll get a URL like: `https://dowa-xyz.vercel.app`
+
+#### Option B: Vercel CLI (Quick)
+
+```bash
+# Install Vercel CLI
+npm i -g vercel
+
+# Navigate to project root
+cd path/to/dowa
+
+# Deploy
+vercel --prod
+```
+
+### 4.6 Update CORS on Backend
+
+Add your Vercel URL to Render environment variables:
+
+```
+ALLOWED_ORIGINS=https://your-domain.vercel.app,https://www.your-domain.com
+```
+
+Go to Render dashboard → Your service → **Environment** → Update → Save
+
+Redeploy will happen automatically.
+
+---
+
+## 🌐 Step 5: Custom Domain (Optional)
 4. Choose your repository: `dowa`
 5. Configure build settings:
    - **Base directory:** `frontend`
@@ -344,7 +401,7 @@ curl https://your-railway-url.up.railway.app/api/albums
 
 ### Frontend Tests
 
-1. Open `https://your-site.netlify.app`
+1. Open `https://your-site.vercel.app`
 2. Test:
    - ✅ Homepage loads
    - ✅ Tracks play correctly
@@ -355,7 +412,7 @@ curl https://your-railway-url.up.railway.app/api/albums
 
 ### Admin Tests
 
-1. Go to `https://your-site.netlify.app/admin/`
+1. Go to `https://your-site.vercel.app/admin/`
 2. Login with admin credentials
 3. Test:
    - ✅ Upload new track
@@ -373,24 +430,31 @@ curl https://your-railway-url.up.railway.app/api/albums
 **Problem:** Backend won't start
 
 ```bash
-# Check logs in Railway dashboard
+# Check logs in Render dashboard
 # Common issues:
 # - Missing environment variables
 # - Wrong PORT variable
 # - Supabase credentials incorrect
 ```
 
+**Problem:** Backend slow to respond
+
+```
+Solution: Free tier spins down after 15 min inactivity
+Upgrade to Starter plan ($7/mo) for always-on service
+```
+
 **Problem:** CORS errors
 
 ```
-Solution: Add your frontend URL to ALLOWED_ORIGINS in Railway
-ALLOWED_ORIGINS=https://your-site.netlify.app
+Solution: Add your Vercel URL to ALLOWED_ORIGINS in Render
+ALLOWED_ORIGINS=https://your-site.vercel.app
 ```
 
 **Problem:** Can't upload files
 
 ```
-Solution: 
+Solution:
 1. Check Supabase storage buckets exist
 2. Verify buckets are public
 3. Check storage policies allow uploads
@@ -424,23 +488,34 @@ Solution:
 
 | Service | Free Tier | Paid Plan |
 |---------|-----------|-----------|
-| **Railway** | $5 credit/month | $5/month |
-| **Netlify** | 100GB bandwidth/month | $19/month |
-| **Supabase** | 500MB database, 1GB storage | $25/month |
+| **Render** | 750 hours/month | $7/month (Starter) |
+| **Vercel** | Unlimited projects | $20/month (Pro) |
+| **Supabase** | 500MB database, 1GB storage | $25/month (Pro) |
 
-**Estimated Monthly Cost:** $0 - $30 (depending on usage)
+**Estimated Monthly Cost:** $0 - $32 (depending on usage)
+
+**Recommendation:** Start with free tiers, upgrade Render to Starter ($7) for production
 
 ---
 
 ## 📊 Monitoring
 
-### Railway Monitoring
+### Render Monitoring
 
-- Go to **Metrics** tab in Railway
+- Go to **Dashboard** → Your service
 - Monitor:
-  - CPU usage
-  - Memory usage
   - Request count
+  - Response times
+  - Error rates
+  - CPU/Memory usage
+
+### Vercel Analytics
+
+- Go to **Analytics** in Vercel dashboard
+- Monitor:
+  - Page views
+  - Web Vitals
+  - Visitor locations
 
 ### Netlify Analytics
 

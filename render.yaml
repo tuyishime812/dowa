@@ -1,0 +1,30 @@
+services:
+  # Backend API Service
+  - type: web
+    name: dgt-sounds-api
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: PORT
+        value: 8000
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_KEY
+        sync: false
+      - key: HOST
+        value: 0.0.0.0
+      - key: ALLOWED_ORIGINS
+        sync: false
+      - key: ADMIN_EMAIL
+        value: admin@dgt-sounds.com
+      - key: ADMIN_PASSWORD
+        sync: false
+    disk:
+      name: backend-data
+      mountPath: /backend/data
+      sizeGB: 1
