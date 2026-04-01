@@ -1,0 +1,5 @@
+# Test this in your browser:
+# https://dgt-sounds.vercel.app/api/health
+# https://dgt-sounds.vercel.app/api/tracks
+# https://dgt-sounds.vercel.app/api/artists
+# https://dgt-sounds.vercel.app/api/albums
