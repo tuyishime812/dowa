@@ -21,6 +21,7 @@
                     <ul>
                         <li><a href="#" class="nav-link active" data-section="home">Home</a></li>
                         <li><a href="#" class="nav-link" data-section="tracks">Tracks</a></li>
+                        <li><a href="#" class="nav-link" data-section="favorites">Favorites</a></li>
                         <li><a href="#" class="nav-link" data-section="artists">Artists</a></li>
                         <li><a href="#" class="nav-link" data-section="genres">Genres</a></li>
                     </ul>
@@ -30,10 +31,6 @@
                         <input type="text" id="searchInput" placeholder="Search tracks, artists...">
                         <button id="searchBtn"><i class="fas fa-search"></i></button>
                     </div>
-                    <button class="upload-btn" id="uploadBtn">
-                        <i class="fas fa-upload"></i>
-                        <span>Upload</span>
-                    </button>
                 </div>
             </div>
         </div>
@@ -128,6 +125,24 @@
                 </div>
                 <div class="genres-grid" id="genresGrid">
                     <!-- Genres will be loaded dynamically -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Favorites Section -->
+        <section class="section" id="favoritesSection" style="display: none;">
+            <div class="container">
+                <div class="section-header">
+                    <h2><i class="fas fa-heart"></i> My Favorites</h2>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem;">Your liked tracks are saved locally</p>
+                </div>
+                <div class="tracks-list" id="favoritesList">
+                    <!-- Favorites will be loaded dynamically -->
+                </div>
+                <div id="noFavorites" style="text-align: center; padding: 60px; display: none;">
+                    <i class="fas fa-heart-broken" style="font-size: 4rem; color: var(--text-muted); margin-bottom: 20px;"></i>
+                    <h3 style="color: var(--text-secondary);">No favorites yet</h3>
+                    <p style="color: var(--text-muted); margin-top: 10px;">Start liking tracks to build your favorites collection!</p>
                 </div>
             </div>
         </section>
@@ -260,7 +275,7 @@
             <div class="footer-bottom">
                 <p>&copy; 2026 DGT-SOUNDS. All rights reserved.</p>
                 <p style="margin-top: 10px;">
-                    <a href="admin/index.html" style="color: var(--primary-color); font-size: 0.85rem;">Admin Dashboard</a>
+                    <a href="admin/" style="color: var(--primary-color); font-size: 0.85rem;">Admin Dashboard</a>
                 </p>
             </div>
         </div>

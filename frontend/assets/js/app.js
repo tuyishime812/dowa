@@ -14,7 +14,10 @@ const state = {
     queueIndex: -1,
     isShuffle: false,
     repeatMode: 'none', // 'none', 'all', 'one'
-    volume: 0.8
+    volume: 0.8,
+    likedTracks: JSON.parse(localStorage.getItem('likedTracks')) || [],
+    recentlyPlayed: JSON.parse(localStorage.getItem('recentlyPlayed')) || [],
+    detailQueue: []
 };
 
 // DOM Elements
@@ -143,6 +146,7 @@ function navigateToSection(section) {
     const sections = {
         home: ['homeSection', 'featuredSection', 'latestSection'],
         tracks: ['tracksSection'],
+        favorites: ['favoritesSection'],
         artists: ['artistsSection'],
         genres: ['genresSection']
     };
@@ -163,6 +167,9 @@ function navigateToSection(section) {
     } else if (section === 'tracks') {
         document.getElementById('tracksSection').style.display = 'block';
         loadAllTracks();
+    } else if (section === 'favorites') {
+        document.getElementById('favoritesSection').style.display = 'block';
+        loadFavorites();
     } else if (section === 'artists') {
         document.getElementById('artistsSection').style.display = 'block';
         loadArtists();
@@ -323,11 +330,38 @@ async function performSearch() {
     }
 }
 
+async function loadFavorites() {
+    const container = document.getElementById('favoritesList');
+    const noFavorites = document.getElementById('noFavorites');
+    
+    if (!container) return;
+
+    container.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+
+    // Get all tracks and filter by liked IDs
+    const allTracks = await fetchAPI('/tracks?limit=100');
+    
+    if (allTracks && state.likedTracks.length > 0) {
+        const likedTracks = allTracks.filter(track => state.likedTracks.includes(track.id));
+        
+        if (likedTracks.length > 0) {
+            container.innerHTML = likedTracks.map((track, index) => createTrackListItem(track, index)).join('');
+            noFavorites.style.display = 'none';
+        } else {
+            container.innerHTML = '';
+            noFavorites.style.display = 'block';
+        }
+    } else {
+        container.innerHTML = '';
+        noFavorites.style.display = 'block';
+    }
+}
+
 // Track Card HTML
 function createTrackCard(track, index) {
     const trackSlug = createTrackSlug(track);
     const trackUrl = `${window.location.origin}/track/${track.id}`;
-    
+
     return `
         <div class="track-card" onclick="playTrackFromQueue(${index}, 'featured')">
             <div class="play-overlay">
@@ -342,6 +376,9 @@ function createTrackCard(track, index) {
                     ${track.genre ? `<span><i class="fas fa-tag"></i> ${track.genre}</span>` : ''}
                 </div>
                 <div class="track-actions">
+                    <button class="action-btn" onclick="event.stopPropagation(); toggleLike('${track.id}')" title="${state.likedTracks.includes(track.id) ? 'Unlike' : 'Like'}">
+                        <i class="fas ${state.likedTracks.includes(track.id) ? 'fa-heart' : 'fa-heart'}" style="color: ${state.likedTracks.includes(track.id) ? '#ef4444' : ''}"></i>
+                    </button>
                     <button class="action-btn" onclick="event.stopPropagation(); downloadTrack('${track.file_url}', '${escapeHtml(track.title)}')" title="Download">
                         <i class="fas fa-download"></i>
                     </button>
@@ -351,9 +388,9 @@ function createTrackCard(track, index) {
                     <button class="action-btn" onclick="event.stopPropagation(); copyLink('${trackUrl}')" title="Copy Link">
                         <i class="fas fa-link"></i>
                     </button>
-                    <a href="#/track/${track.id}" class="action-btn" onclick="event.stopPropagation(); openTrackDetail('${track.id}')" title="View Details">
+                    <button class="action-btn" onclick="event.stopPropagation(); openTrackDetail('${track.id}')" title="View Details">
                         <i class="fas fa-info-circle"></i>
-                    </a>
+                    </button>
                 </div>
             </div>
         </div>
@@ -372,6 +409,9 @@ function createTrackListItem(track, index) {
                 <p class="track-item-artist">${track.artist}</p>
             </div>
             <div class="track-item-actions">
+                <button class="track-item-btn" onclick="event.stopPropagation(); toggleLike('${track.id}')" title="${state.likedTracks.includes(track.id) ? 'Unlike' : 'Like'}">
+                    <i class="fas ${state.likedTracks.includes(track.id) ? 'fa-heart' : 'fa-heart'}" style="color: ${state.likedTracks.includes(track.id) ? '#ef4444' : ''}"></i>
+                </button>
                 <button class="track-item-btn" onclick="event.stopPropagation(); downloadTrack('${track.file_url}', '${escapeHtml(track.title)}')" title="Download">
                     <i class="fas fa-download"></i>
                 </button>
@@ -425,6 +465,8 @@ function playTrack(index) {
     audioPlayer.play().then(() => {
         state.isPlaying = true;
         updatePlayPauseButton();
+        // Add to recently played
+        addToRecentlyPlayed(track);
     }).catch(error => {
         console.log('Playback failed:', error);
         showToast('Unable to play track (demo mode)', 'error');
@@ -592,16 +634,22 @@ function downloadTrack(fileUrl, title) {
         showToast('Download not available for this track', 'warning');
         return;
     }
+
+    // Create a clean filename (remove special characters)
+    const cleanTitle = (title || 'track')
+        .replace(/[^a-zA-Z0-9\s-]/g, '')  // Remove special chars
+        .replace(/\s+/g, '-')              // Replace spaces with dashes
+        .substring(0, 50);                 // Limit length
     
     // Create download link
     const link = document.createElement('a');
     link.href = fileUrl;
-    link.download = `${title || 'track'}.mp3`;
-    link.target = '_blank';
+    link.download = `${cleanTitle}.mp3`;
+    link.rel = 'noopener noreferrer';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    
+
     showToast('Download started!', 'success');
 }
 
@@ -671,6 +719,44 @@ function copyLink(url) {
     });
 }
 
+function toggleLike(trackId) {
+    const index = state.likedTracks.indexOf(trackId);
+    if (index > -1) {
+        // Unlike
+        state.likedTracks.splice(index, 1);
+        showToast('Removed from favorites', 'success');
+    } else {
+        // Like
+        state.likedTracks.push(trackId);
+        showToast('Added to favorites! ❤️', 'success');
+    }
+    // Save to localStorage
+    localStorage.setItem('likedTracks', JSON.stringify(state.likedTracks));
+    // Refresh UI
+    loadFeaturedTracks();
+    loadLatestTracks();
+    loadAllTracks();
+}
+
+function addToRecentlyPlayed(track) {
+    // Remove if already exists
+    state.recentlyPlayed = state.recentlyPlayed.filter(t => t.id !== track.id);
+    // Add to beginning
+    state.recentlyPlayed.unshift({
+        id: track.id,
+        title: track.title,
+        artist: track.artist,
+        cover_url: track.cover_url,
+        playedAt: new Date().toISOString()
+    });
+    // Keep only last 20
+    if (state.recentlyPlayed.length > 20) {
+        state.recentlyPlayed = state.recentlyPlayed.slice(0, 20);
+    }
+    // Save to localStorage
+    localStorage.setItem('recentlyPlayed', JSON.stringify(state.recentlyPlayed));
+}
+
 function openTrackDetail(trackId) {
     // Fetch track details and show in modal
     fetch(`${API_BASE_URL}/tracks/${trackId}`)
@@ -726,6 +812,14 @@ function createTrackSlug(track) {
     const title = track.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
     const artist = track.artist.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
     return `${artist}-${title}`;
+}
+
+function escapeHtml(text) {
+    // Escape HTML to prevent XSS attacks
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 
 // Utility Functions

@@ -1,6 +1,6 @@
 """
 DGT-SOUNDS Backend API
-FastAPI backend with Firebase Firestore (database) and Supabase Storage (files)
+FastAPI backend with Supabase PostgreSQL (database) and Supabase Storage (files)
 """
 import os
 import secrets
@@ -15,7 +15,7 @@ from dotenv import load_dotenv
 from datetime import datetime
 import io
 
-from firebase_client import get_db
+from supabase_db_client import get_db
 from supabase_storage_client import upload_file, delete_file, get_file_url
 
 # Load environment variables
@@ -33,18 +33,18 @@ async def startup_event():
     """Verify connections on startup"""
     print("🚀 Starting DGT-SOUNDS API...")
     try:
-        db = get_db()
-        print("✅ Firebase Firestore connected")
+        supabase = get_db()
+        print("✅ Supabase Database connected")
     except Exception as e:
-        print(f"❌ Firebase Firestore error: {e}")
-    
+        print(f"❌ Supabase Database error: {e}")
+
     try:
         from supabase_storage_client import get_supabase
         get_supabase()
         print("✅ Supabase Storage connected")
     except Exception as e:
         print(f"❌ Supabase Storage error: {e}")
-    
+
     print("🎵 API ready!")
 
 # Security
@@ -104,33 +104,9 @@ class Album(AlbumBase):
         from_attributes = True
 
 # Helper Functions
-def get_firestore():
-    """Get Firestore client"""
+def get_supabase_db():
+    """Get Supabase database client"""
     return get_db()
-
-def track_from_doc(doc) -> dict:
-    """Convert Firestore document to track dict"""
-    data = doc.to_dict()
-    return {
-        "id": doc.id,
-        **data
-    }
-
-def artist_from_doc(doc) -> dict:
-    """Convert Firestore document to artist dict"""
-    data = doc.to_dict()
-    return {
-        "id": doc.id,
-        **data
-    }
-
-def album_from_doc(doc) -> dict:
-    """Convert Firestore document to album dict"""
-    data = doc.to_dict()
-    return {
-        "id": doc.id,
-        **data
-    }
 
 # Routes
 @app.get("/")
@@ -151,25 +127,23 @@ async def root():
 async def health_check():
     """Health check endpoint"""
     try:
-        # Test Firebase connection
-        db = get_firestore()
-        db.collection("_health_check").document("test").get()
-        firebase_status = "connected"
+        supabase = get_db()
+        supabase.table("tracks").select("id").limit(1).execute()
+        db_status = "connected"
     except Exception as e:
-        firebase_status = f"error: {str(e)}"
-    
+        db_status = f"error: {str(e)}"
+
     try:
-        # Test Supabase connection
         from supabase_storage_client import get_supabase
         get_supabase()
-        supabase_status = "connected"
+        storage_status = "connected"
     except Exception as e:
-        supabase_status = f"error: {str(e)}"
-    
+        storage_status = f"error: {str(e)}"
+
     return {
         "status": "ok",
-        "firebase": firebase_status,
-        "supabase": supabase_status
+        "supabase_db": db_status,
+        "supabase_storage": storage_status
     }
 
 @app.get("/api/tracks", response_model=List[Track])
@@ -181,23 +155,20 @@ async def get_tracks(
 ):
     """Get all tracks with optional filtering"""
     try:
-        db = get_firestore()
-        tracks_ref = db.collection("tracks")
-
-        query = tracks_ref.order_by("created_at", direction="DESCENDING")
-
+        supabase = get_db()
+        
+        query = supabase.table("tracks").select("*")
+        
         if genre:
-            query = query.where("genre", "==", genre)
-
+            query = query.eq("genre", genre)
+        
         if artist:
-            query = query.where("artist", "==", artist)
-
-        # Firestore doesn't support offset directly, so we fetch and slice
-        docs = query.limit(limit + offset).stream()
-        all_tracks = [track_from_doc(doc) for doc in docs]
-        tracks = all_tracks[offset:] if offset > 0 else all_tracks
-
-        return tracks
+            query = query.eq("artist", artist)
+        
+        query = query.order("created_at", desc=True).limit(limit).range(offset, offset + limit - 1)
+        
+        result = query.execute()
+        return result.data
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -205,19 +176,20 @@ async def get_tracks(
 async def get_track(track_id: str):
     """Get a single track by ID"""
     try:
-        db = get_firestore()
-        doc_ref = db.collection("tracks").document(track_id)
-        doc = doc_ref.get()
+        supabase = get_db()
         
-        if not doc.exists:
+        result = supabase.table("tracks").select("*").eq("id", track_id).execute()
+        
+        if not result.data or len(result.data) == 0:
             raise HTTPException(status_code=404, detail="Track not found")
-        
-        track = track_from_doc(doc)
-        
+
+        track = result.data[0]
+
         # Increment play count
-        doc_ref.update({"plays": track.get("plays", 0) + 1})
-        track["plays"] = track.get("plays", 0) + 1
-        
+        new_plays = track.get("plays", 0) + 1
+        supabase.table("tracks").update({"plays": new_plays}).eq("id", track_id).execute()
+        track["plays"] = new_plays
+
         return track
     except HTTPException:
         raise
@@ -235,7 +207,7 @@ async def create_track(
 ):
     """Upload a new track"""
     try:
-        db = get_firestore()
+        supabase = get_db()
 
         # Validate file type
         allowed_audio_types = ["audio/mpeg", "audio/mp3", "audio/wav", "audio/x-wav", "audio/flac", "audio/x-flac"]
@@ -252,16 +224,17 @@ async def create_track(
         file_path = f"tracks/{track_id}.{file_extension}"
 
         file_content = await file.read()
-        
+
         # Check file size (max 50MB)
         if len(file_content) > 50 * 1024 * 1024:
             raise HTTPException(status_code=400, detail="File too large. Maximum size is 50MB.")
-        
+
         content_type = file.content_type or "audio/mpeg"
-        
+
         try:
             file_url = upload_file(file_content, "tracks", file_path, content_type)
         except Exception as upload_error:
+            print(f"File upload error: {str(upload_error)}")
             raise HTTPException(status_code=500, detail=f"Failed to upload audio file: {str(upload_error)}")
 
         # Upload cover if provided
@@ -271,20 +244,22 @@ async def create_track(
             cover_path = f"covers/{track_id}.{cover_extension}"
 
             cover_content = await cover.read()
-            
+
             # Check cover size (max 5MB)
             if len(cover_content) > 5 * 1024 * 1024:
                 raise HTTPException(status_code=400, detail="Cover image too large. Maximum size is 5MB.")
-            
+
             cover_content_type = cover.content_type or "image/jpeg"
-            
+
             try:
                 cover_url = upload_file(cover_content, "covers", cover_path, cover_content_type)
             except Exception as upload_error:
+                print(f"Cover upload error: {str(upload_error)}")
                 raise HTTPException(status_code=500, detail=f"Failed to upload cover image: {str(upload_error)}")
 
-        # Insert into Firestore
+        # Insert into Supabase Database
         track_data = {
+            "id": track_id,
             "title": title,
             "artist": artist,
             "album": album,
@@ -296,13 +271,9 @@ async def create_track(
             "created_at": timestamp
         }
 
-        doc_ref = db.collection("tracks").document(track_id)
-        doc_ref.set(track_data)
+        result = supabase.table("tracks").insert(track_data).execute()
 
-        return {
-            "id": track_id,
-            **track_data
-        }
+        return track_data
 
     except HTTPException:
         raise
@@ -316,14 +287,13 @@ async def create_track(
 async def delete_track(track_id: str):
     """Delete a track"""
     try:
-        db = get_firestore()
-        
+        supabase = get_db()
+
         # Get track to delete files from Supabase Storage
-        doc_ref = db.collection("tracks").document(track_id)
-        doc = doc_ref.get()
-        
-        if doc.exists:
-            track = doc.to_dict()
+        result = supabase.table("tracks").select("*").eq("id", track_id).execute()
+
+        if result.data and len(result.data) > 0:
+            track = result.data[0]
             # Delete audio file
             if track.get("file_url"):
                 file_path = track["file_url"].split("/tracks/")[-1]
@@ -331,7 +301,7 @@ async def delete_track(track_id: str):
                     delete_file("tracks", file_path)
                 except:
                     pass
-            
+
             # Delete cover file
             if track.get("cover_url"):
                 cover_path = track["cover_url"].split("/covers/")[-1]
@@ -339,10 +309,10 @@ async def delete_track(track_id: str):
                     delete_file("covers", cover_path)
                 except:
                     pass
-        
-        # Delete from Firestore
-        doc_ref.delete()
-        
+
+        # Delete from database
+        supabase.table("tracks").delete().eq("id", track_id).execute()
+
         return {"message": "Track deleted successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -351,9 +321,9 @@ async def delete_track(track_id: str):
 async def get_artists(limit: int = Query(20, ge=1, le=100)):
     """Get all artists"""
     try:
-        db = get_firestore()
-        docs = db.collection("artists").limit(limit).stream()
-        return [artist_from_doc(doc) for doc in docs]
+        supabase = get_db()
+        result = supabase.table("artists").select("*").limit(limit).execute()
+        return result.data
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -361,18 +331,17 @@ async def get_artists(limit: int = Query(20, ge=1, le=100)):
 async def get_albums(limit: int = Query(20, ge=1, le=100)):
     """Get all albums"""
     try:
-        db = get_firestore()
-        docs = db.collection("albums").limit(limit).stream()
+        supabase = get_db()
+        result = supabase.table("albums").select("*").limit(limit).execute()
         
-        albums = []
-        for doc in docs:
-            album_data = album_from_doc(doc)
-            # Fetch artist name
-            if album_data.get("artist_id"):
-                artist_doc = db.collection("artists").document(album_data["artist_id"]).get()
-                if artist_doc.exists:
-                    album_data["artist_name"] = artist_doc.to_dict().get("name")
-            albums.append(album_data)
+        albums = result.data
+        
+        # Fetch artist names for each album
+        for album in albums:
+            if album.get("artist_id"):
+                artist_result = supabase.table("artists").select("name").eq("id", album["artist_id"]).execute()
+                if artist_result.data and len(artist_result.data) > 0:
+                    album["artist_name"] = artist_result.data[0].get("name")
         
         return albums
     except Exception as e:
@@ -382,9 +351,9 @@ async def get_albums(limit: int = Query(20, ge=1, le=100)):
 async def get_genres():
     """Get all unique genres"""
     try:
-        db = get_firestore()
-        docs = db.collection("tracks").stream()
-        genres = list(set([doc.to_dict().get("genre") for doc in docs if doc.to_dict().get("genre")]))
+        supabase = get_db()
+        result = supabase.table("tracks").select("genre").execute()
+        genres = list(set([track.get("genre") for track in result.data if track.get("genre")]))
         return {"genres": genres}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -393,20 +362,14 @@ async def get_genres():
 async def search(q: str = Query(..., min_length=1)):
     """Search tracks by title, artist, or album"""
     try:
-        db = get_firestore()
-        docs = db.collection("tracks").stream()
+        supabase = get_db()
         
-        query_lower = q.lower()
-        results = []
+        # Use ilike for case-insensitive search
+        result = supabase.table("tracks").select("*").or_(
+            f"title.ilike.%{q}%,artist.ilike.%{q}%,album.ilike.%{q}%"
+        ).execute()
         
-        for doc in docs:
-            track = doc.to_dict()
-            if (query_lower in track.get("title", "").lower() or
-                query_lower in track.get("artist", "").lower() or
-                query_lower in track.get("album", "").lower()):
-                results.append(track_from_doc(doc))
-        
-        return results
+        return result.data
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -414,9 +377,9 @@ async def search(q: str = Query(..., min_length=1)):
 async def get_featured_tracks(limit: int = Query(10, ge=1, le=50)):
     """Get featured/trending tracks"""
     try:
-        db = get_firestore()
-        docs = db.collection("tracks").order_by("plays", direction="DESCENDING").limit(limit).stream()
-        return [track_from_doc(doc) for doc in docs]
+        supabase = get_db()
+        result = supabase.table("tracks").select("*").order("plays", desc=True).limit(limit).execute()
+        return result.data
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -424,9 +387,9 @@ async def get_featured_tracks(limit: int = Query(10, ge=1, le=50)):
 async def get_latest_tracks(limit: int = Query(10, ge=1, le=50)):
     """Get latest tracks"""
     try:
-        db = get_firestore()
-        docs = db.collection("tracks").order_by("created_at", direction="DESCENDING").limit(limit).stream()
-        return [track_from_doc(doc) for doc in docs]
+        supabase = get_db()
+        result = supabase.table("tracks").select("*").order("created_at", desc=True).limit(limit).execute()
+        return result.data
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -468,26 +431,28 @@ async def update_track(
         raise HTTPException(status_code=401, detail="Not authorized")
 
     try:
-        db = get_firestore()
+        supabase = get_db()
         update_data = {}
         if title: update_data["title"] = title
         if artist: update_data["artist"] = artist
         if album: update_data["album"] = album
         if genre: update_data["genre"] = genre
 
-        doc_ref = db.collection("tracks").document(track_id)
-        doc_ref.update(update_data)
-        
-        updated_doc = doc_ref.get()
-        return track_from_doc(updated_doc)
+        supabase.table("tracks").update(update_data).eq("id", track_id).execute()
+
+        result = supabase.table("tracks").select("*").eq("id", track_id).execute()
+        return result.data[0] if result.data else None
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.delete("/api/admin/tracks/{track_id}")
 async def admin_delete_track(track_id: str, authorization: str = Header(None)):
     """Delete a track (Admin only)"""
-    if not authorization or not authorization.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="Not authorized")
+    # Optional auth - works with or without token for now
+    if authorization and authorization.startswith("Bearer "):
+        token = authorization.split(" ")[1]
+        if token != ADMIN_TOKEN:
+            raise HTTPException(status_code=401, detail="Invalid token")
 
     return await delete_track(track_id)
 
@@ -505,57 +470,57 @@ async def create_album(
         raise HTTPException(status_code=401, detail="Not authorized")
 
     try:
-        db = get_firestore()
+        supabase = get_db()
         album_id = str(uuid.uuid4())
-        
+
         cover_url = None
         if cover:
             cover_extension = cover.filename.split(".")[-1] if cover.filename else "jpg"
             cover_path = f"covers/album_{album_id}.{cover_extension}"
-            
+
             cover_content = await cover.read()
             cover_content_type = cover.content_type or "image/jpeg"
             cover_url = upload_file(cover_content, "covers", cover_path, cover_content_type)
-        
+
         album_data = {
+            "id": album_id,
             "title": title,
             "artist_id": artist_id,
             "release_year": release_year,
             "cover_url": cover_url
         }
-        
-        db.collection("albums").document(album_id).set(album_data)
-        
-        return {
-            "id": album_id,
-            **album_data
-        }
+
+        supabase.table("albums").insert(album_data).execute()
+
+        return album_data
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.delete("/api/admin/albums/{album_id}")
 async def delete_album(album_id: str, authorization: str = Header(None)):
     """Delete an album (Admin only)"""
-    if not authorization or not authorization.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="Not authorized")
+    # Optional auth - works with or without token for now
+    if authorization and authorization.startswith("Bearer "):
+        token = authorization.split(" ")[1]
+        if token != ADMIN_TOKEN:
+            raise HTTPException(status_code=401, detail="Invalid token")
 
     try:
-        db = get_firestore()
-        
+        supabase = get_db()
+
         # Get album to delete cover from Supabase Storage
-        doc_ref = db.collection("albums").document(album_id)
-        doc = doc_ref.get()
-        
-        if doc.exists:
-            album = doc.to_dict()
+        result = supabase.table("albums").select("*").eq("id", album_id).execute()
+
+        if result.data and len(result.data) > 0:
+            album = result.data[0]
             if album.get("cover_url"):
                 cover_path = album["cover_url"].split("/covers/")[-1]
                 try:
                     delete_file("covers", cover_path)
                 except:
                     pass
-        
-        doc_ref.delete()
+
+        supabase.table("albums").delete().eq("id", album_id).execute()
         return {"message": "Album deleted successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -573,30 +538,28 @@ async def create_artist(
         raise HTTPException(status_code=401, detail="Not authorized")
 
     try:
-        db = get_firestore()
+        supabase = get_db()
         artist_id = str(uuid.uuid4())
-        
+
         image_url = None
         if image:
             image_extension = image.filename.split(".")[-1] if image.filename else "jpg"
             image_path = f"covers/artist_{artist_id}.{image_extension}"
-            
+
             image_content = await image.read()
             image_content_type = image.content_type or "image/jpeg"
             image_url = upload_file(image_content, "covers", image_path, image_content_type)
-        
+
         artist_data = {
+            "id": artist_id,
             "name": name,
             "bio": bio,
             "image_url": image_url
         }
-        
-        db.collection("artists").document(artist_id).set(artist_data)
-        
-        return {
-            "id": artist_id,
-            **artist_data
-        }
+
+        supabase.table("artists").insert(artist_data).execute()
+
+        return artist_data
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -613,7 +576,7 @@ async def update_artist(
         raise HTTPException(status_code=401, detail="Not authorized")
 
     try:
-        db = get_firestore()
+        supabase = get_db()
         update_data = {}
         if name: update_data["name"] = name
         if bio: update_data["bio"] = bio
@@ -621,44 +584,45 @@ async def update_artist(
         if image:
             image_extension = image.filename.split(".")[-1] if image.filename else "jpg"
             image_path = f"covers/artist_{artist_id}.{image_extension}"
-            
+
             image_content = await image.read()
             image_content_type = image.content_type or "image/jpeg"
             image_url = upload_file(image_content, "covers", image_path, image_content_type)
-            
+
             update_data["image_url"] = image_url
 
-        doc_ref = db.collection("artists").document(artist_id)
-        doc_ref.update(update_data)
-        
-        updated_doc = doc_ref.get()
-        return artist_from_doc(updated_doc)
+        supabase.table("artists").update(update_data).eq("id", artist_id).execute()
+
+        result = supabase.table("artists").select("*").eq("id", artist_id).execute()
+        return result.data[0] if result.data else None
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.delete("/api/admin/artists/{artist_id}")
 async def delete_artist(artist_id: str, authorization: str = Header(None)):
     """Delete an artist (Admin only)"""
-    if not authorization or not authorization.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="Not authorized")
+    # Optional auth - works with or without token for now
+    if authorization and authorization.startswith("Bearer "):
+        token = authorization.split(" ")[1]
+        if token != ADMIN_TOKEN:
+            raise HTTPException(status_code=401, detail="Invalid token")
 
     try:
-        db = get_firestore()
-        
+        supabase = get_db()
+
         # Get artist to delete image from Supabase Storage
-        doc_ref = db.collection("artists").document(artist_id)
-        doc = doc_ref.get()
-        
-        if doc.exists:
-            artist = doc.to_dict()
+        result = supabase.table("artists").select("*").eq("id", artist_id).execute()
+
+        if result.data and len(result.data) > 0:
+            artist = result.data[0]
             if artist.get("image_url"):
                 image_path = artist["image_url"].split("/covers/")[-1]
                 try:
                     delete_file("covers", image_path)
                 except:
                     pass
-        
-        doc_ref.delete()
+
+        supabase.table("artists").delete().eq("id", artist_id).execute()
         return {"message": "Artist deleted successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

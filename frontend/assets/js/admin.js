@@ -102,6 +102,15 @@ function initializeEventListeners() {
             }
         });
     });
+
+    // Delete confirmation button - use event delegation
+    document.addEventListener('click', function(e) {
+        if (e.target.id === 'confirmDeleteBtn' || e.target.closest('#confirmDeleteBtn')) {
+            if (deleteCallback) {
+                deleteCallback();
+            }
+        }
+    });
 }
 
 async function handleLogin(e) {
@@ -559,12 +568,6 @@ function closeDeleteModal() {
     document.getElementById('deleteModal').classList.remove('active');
     deleteCallback = null;
 }
-
-document.getElementById('confirmDeleteBtn')?.addEventListener('click', () => {
-    if (deleteCallback) {
-        deleteCallback();
-    }
-});
 
 async function performDelete(type, id) {
     const token = localStorage.getItem('adminToken');
