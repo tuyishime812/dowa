@@ -36,6 +36,17 @@ CREATE TABLE IF NOT EXISTS albums (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Add release_year column if it doesn't exist (for existing tables)
+DO $$ 
+BEGIN 
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'albums' AND column_name = 'release_year'
+    ) THEN
+        ALTER TABLE albums ADD COLUMN release_year INTEGER;
+    END IF;
+END $$;
+
 -- 4. Create indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_tracks_genre ON tracks(genre);
 CREATE INDEX IF NOT EXISTS idx_tracks_artist ON tracks(artist);
@@ -100,6 +111,6 @@ INSERT INTO artists (id, name, bio) VALUES
 ON CONFLICT (id) DO NOTHING;
 
 -- Sample Album
-INSERT INTO albums (id, title, artist_id, release_year) VALUES 
-('00000000-0000-0000-0000-000000000001', 'Sample Album', '00000000-0000-0000-0000-000000000001', 2024)
+INSERT INTO albums (id, title, artist_id, release_year, cover_url) VALUES
+('00000000-0000-0000-0000-000000000001', 'Sample Album', '00000000-0000-0000-0000-000000000001', 2024, NULL)
 ON CONFLICT (id) DO NOTHING;
