@@ -2,31 +2,54 @@
   "version": 2,
   "builds": [
     {
+      "src": "api/index.py",
+      "use": "@vercel/python",
+      "config": {
+        "runtime": "python3.9"
+      }
+    },
+    {
       "src": "frontend/**",
       "use": "@vercel/static"
     }
   ],
   "routes": [
     {
+      "src": "/api/(.*)",
+      "dest": "api/index.py"
+    },
+    {
       "src": "/admin/(.*)",
-      "dest": "/admin/$1"
+      "dest": "frontend/admin/$1"
     },
     {
       "src": "/assets/(.*)",
-      "dest": "/assets/$1"
+      "dest": "frontend/assets/$1"
     },
     {
       "src": "/track/(.*)",
-      "dest": "/index.html"
+      "dest": "frontend/index.html"
+    },
+    {
+      "src": "/",
+      "dest": "frontend/index.html"
     },
     {
       "src": "/(.*)",
-      "dest": "/$1"
+      "dest": "frontend/$1"
     }
   ],
-  "outputDirectory": "frontend",
-  "public": true,
   "env": {
-    "API_BASE_URL": "https://your-render-url.onrender.com"
+    "SUPABASE_URL": "https://your-project.supabase.co",
+    "SUPABASE_KEY": "your-anon-key",
+    "ADMIN_EMAIL": "admin@dgt-sounds.com",
+    "ADMIN_PASSWORD": "admin123",
+    "ALLOWED_ORIGINS": "https://your-domain.vercel.app,http://localhost:3000"
+  },
+  "regions": ["iad1"],
+  "functions": {
+    "api/index.py": {
+      "maxDuration": 10
+    }
   }
 }
