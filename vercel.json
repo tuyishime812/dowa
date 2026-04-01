@@ -46,10 +46,5 @@
     "ADMIN_PASSWORD": "admin123",
     "ALLOWED_ORIGINS": "https://your-domain.vercel.app,http://localhost:3000"
   },
-  "regions": ["iad1"],
-  "functions": {
-    "api/index.py": {
-      "maxDuration": 10
-    }
-  }
+  "regions": ["iad1"]
 }
