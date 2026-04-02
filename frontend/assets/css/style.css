@@ -1119,94 +1119,690 @@ button {
     }
 }
 
-/* Responsive Design */
+/* ============================================
+   Responsive Design - Mobile First Approach
+   ============================================ */
+
+/* Tablet & Below (1024px) */
 @media (max-width: 1024px) {
     .hero h1 {
         font-size: 2.5rem;
     }
-    
+
     .tracks-grid {
         grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
     }
+    
+    .artists-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
 }
 
+/* Mobile Landscape (768px) */
 @media (max-width: 768px) {
+    /* Header - Mobile Navigation */
     .header-content {
         flex-wrap: wrap;
-        gap: 15px;
+        gap: 10px;
+        padding: 10px 15px;
     }
-    
+
+    .logo {
+        flex: 1;
+    }
+
+    .logo img {
+        height: 35px;
+    }
+
+    .logo-text {
+        font-size: 1.2rem;
+    }
+
     .nav {
         order: 3;
         width: 100%;
+        display: none;
+        margin-top: 10px;
     }
-    
+
+    .nav.active {
+        display: block;
+    }
+
     .nav ul {
         justify-content: center;
+        flex-wrap: wrap;
+        gap: 10px;
     }
-    
+
+    .nav-link {
+        font-size: 0.9rem;
+        padding: 8px 12px;
+    }
+
+    .header-actions {
+        order: 2;
+        flex: 1;
+        justify-content: flex-end;
+    }
+
+    .search-box {
+        flex: 1;
+        max-width: 200px;
+    }
+
     .search-box input {
-        width: 150px;
+        width: 100%;
+        font-size: 14px;
     }
-    
+
     .upload-btn span {
         display: none;
     }
-    
+
+    .upload-btn {
+        padding: 10px;
+    }
+
+    /* Mobile Menu Button */
+    .mobile-menu-btn {
+        display: block;
+        background: none;
+        border: none;
+        color: var(--text-primary);
+        font-size: 1.5rem;
+        cursor: pointer;
+        padding: 5px;
+    }
+
+    /* Hero Section */
     .hero {
-        height: 400px;
-        margin-top: 120px;
+        height: 350px;
+        margin-top: 100px;
+        padding: 20px;
     }
-    
+
     .hero h1 {
-        font-size: 2rem;
+        font-size: 1.8rem;
+        margin-bottom: 15px;
     }
-    
+
+    .hero p {
+        font-size: 1rem;
+        margin-bottom: 20px;
+    }
+
     .hero-buttons {
         flex-direction: column;
+        gap: 10px;
     }
-    
+
+    .hero-buttons .btn {
+        width: 100%;
+        padding: 12px 20px;
+        font-size: 0.95rem;
+    }
+
+    /* Sections */
+    .section {
+        padding: 30px 0;
+    }
+
+    .container {
+        padding: 0 15px;
+    }
+
+    .section-header h2 {
+        font-size: 1.5rem;
+    }
+
+    .section-header .view-all {
+        font-size: 0.85rem;
+    }
+
+    /* Tracks Grid */
+    .tracks-grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 15px;
+    }
+
+    .track-card {
+        border-radius: 12px;
+    }
+
+    .track-cover {
+        aspect-ratio: 1;
+    }
+
+    .track-info {
+        padding: 12px;
+    }
+
+    .track-title {
+        font-size: 0.9rem;
+    }
+
+    .track-artist {
+        font-size: 0.8rem;
+    }
+
+    /* Music Player - Mobile */
     .player-content {
         flex-wrap: wrap;
+        padding: 10px 15px;
     }
-    
+
     .player-info {
-        min-width: 150px;
+        flex: 1;
+        min-width: 0;
+        gap: 10px;
     }
-    
+
+    .player-cover {
+        width: 45px;
+        height: 45px;
+    }
+
+    .player-title {
+        font-size: 0.85rem;
+    }
+
+    .player-artist {
+        font-size: 0.75rem;
+    }
+
+    .player-controls {
+        order: 3;
+        width: 100%;
+        justify-content: center;
+        margin-top: 10px;
+    }
+
+    .control-buttons {
+        gap: 15px;
+    }
+
+    .control-btn {
+        width: 35px;
+        height: 35px;
+        font-size: 1rem;
+    }
+
+    .play-btn {
+        width: 45px;
+        height: 45px;
+        font-size: 1.2rem;
+    }
+
+    .time-display {
+        width: 100%;
+        justify-content: center;
+        font-size: 0.75rem;
+        margin-top: 5px;
+    }
+
     .player-volume {
         display: none;
     }
-    
+
+    .player-progress {
+        height: 4px;
+    }
+
+    /* Filters */
     .filters {
         flex-direction: column;
+        gap: 10px;
     }
-    
+
     .filter-select {
         width: 100%;
+        font-size: 0.9rem;
+    }
+
+    /* Track List Item */
+    .track-item {
+        flex-direction: column;
+        gap: 10px;
+        padding: 12px;
+    }
+
+    .track-item-image {
+        width: 60px;
+        height: 60px;
+    }
+
+    .track-item-info {
+        text-align: center;
+    }
+
+    .track-item-actions {
+        justify-content: center;
+        width: 100%;
+    }
+
+    /* Genre Cards */
+    .genres-grid {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 12px;
+    }
+
+    .genre-card {
+        padding: 20px 15px;
+    }
+
+    .genre-icon {
+        font-size: 2rem;
+    }
+
+    .genre-name {
+        font-size: 0.85rem;
+    }
+
+    /* Artists Grid */
+    .artists-grid {
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        gap: 15px;
+    }
+
+    .artist-card {
+        padding: 15px;
+    }
+
+    .artist-image {
+        width: 80px;
+        height: 80px;
+    }
+
+    .artist-name {
+        font-size: 0.9rem;
+    }
+
+    /* Modals - Mobile */
+    .modal-content {
+        width: 95%;
+        max-width: none;
+        margin: 20px;
+    }
+
+    .modal-header {
+        padding: 15px;
+    }
+
+    .modal-body {
+        padding: 15px;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-group label {
+        font-size: 0.9rem;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        font-size: 14px;
+        padding: 10px;
+    }
+
+    .form-actions {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .form-actions .btn {
+        width: 100%;
+    }
+
+    /* Share Modal Mobile */
+    .share-modal-content {
+        width: 95%;
+        margin: 20px;
+    }
+
+    /* Track Detail Modal Mobile */
+    .track-detail-content {
+        width: 95%;
+        margin: 20px;
+        padding: 20px;
+    }
+
+    .track-detail-header {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .track-detail-cover {
+        width: 180px;
+        height: 180px;
+    }
+
+    .track-detail-info {
+        align-items: center;
+    }
+
+    .track-detail-title {
+        font-size: 1.3rem;
+    }
+
+    .track-detail-artist {
+        font-size: 1rem;
+    }
+
+    .track-detail-actions {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .track-detail-actions .btn {
+        margin: 5px;
+    }
+
+    /* Footer */
+    .footer {
+        padding: 30px 0 20px;
+    }
+
+    .footer-content {
+        flex-direction: column;
+        gap: 25px;
+        text-align: center;
+    }
+
+    .footer-logo {
+        align-items: center;
+    }
+
+    .footer-links ul {
+        justify-content: center;
+    }
+
+    .footer-social .social-links {
+        justify-content: center;
     }
 }
 
+/* Mobile Portrait (480px) */
 @media (max-width: 480px) {
+    /* Typography */
     .logo-text {
-        font-size: 1.3rem;
+        font-size: 1.1rem;
     }
-    
+
     .logo img {
-        height: 40px;
+        height: 32px;
     }
-    
+
+    /* Hide search on small screens */
     .search-box {
         display: none;
     }
-    
-    .tracks-grid {
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-        gap: 15px;
+
+    .header-actions {
+        justify-content: center;
     }
-    
+
+    /* Hero */
+    .hero {
+        height: 300px;
+        margin-top: 90px;
+    }
+
+    .hero h1 {
+        font-size: 1.5rem;
+    }
+
+    .hero p {
+        font-size: 0.9rem;
+    }
+
+    /* Tracks Grid - Single Column */
+    .tracks-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+
+    .track-card {
+        border-radius: 10px;
+    }
+
+    .track-cover {
+        border-radius: 10px;
+    }
+
+    .track-info {
+        padding: 10px;
+    }
+
+    .track-title {
+        font-size: 0.8rem;
+        margin-bottom: 4px;
+    }
+
+    .track-artist {
+        font-size: 0.7rem;
+    }
+
+    .track-actions {
+        gap: 5px;
+    }
+
+    .action-btn {
+        width: 28px;
+        height: 28px;
+        font-size: 0.8rem;
+    }
+
+    /* Section Headers */
     .section-header h2 {
-        font-size: 1.4rem;
+        font-size: 1.2rem;
+    }
+
+    .section-header .view-all {
+        font-size: 0.8rem;
+    }
+
+    /* Music Player - Compact */
+    .player-content {
+        padding: 8px 10px;
+    }
+
+    .player-cover {
+        width: 40px;
+        height: 40px;
+    }
+
+    .player-title {
+        font-size: 0.8rem;
+        max-width: 120px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .player-artist {
+        font-size: 0.7rem;
+    }
+
+    .control-btn {
+        width: 32px;
+        height: 32px;
+        font-size: 0.9rem;
+    }
+
+    .play-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 1.1rem;
+    }
+
+    .time-display {
+        font-size: 0.7rem;
+    }
+
+    /* Genres - 2 Columns */
+    .genres-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .genre-card {
+        padding: 15px 10px;
+    }
+
+    .genre-icon {
+        font-size: 1.8rem;
+    }
+
+    .genre-name {
+        font-size: 0.8rem;
+    }
+
+    /* Artists - 2 Columns */
+    .artists-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .artist-card {
+        padding: 12px;
+    }
+
+    .artist-image {
+        width: 70px;
+        height: 70px;
+    }
+
+    .artist-name {
+        font-size: 0.8rem;
+    }
+
+    .artist-bio {
+        font-size: 0.7rem;
+        display: none;
+    }
+
+    /* Buttons */
+    .btn {
+        padding: 10px 15px;
+        font-size: 0.85rem;
+    }
+
+    /* Toast Notifications */
+    .toast {
+        min-width: auto;
+        width: 90%;
+        max-width: none;
+        left: 5%;
+        font-size: 0.85rem;
+    }
+
+    /* Loading Spinner */
+    .spinner {
+        width: 40px;
+        height: 40px;
+    }
+}
+
+/* Small Mobile (360px) */
+@media (max-width: 360px) {
+    .logo-text {
+        display: none;
+    }
+
+    .logo {
+        justify-content: center;
+    }
+
+    .tracks-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .genres-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .artists-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .hero h1 {
+        font-size: 1.3rem;
+    }
+
+    .player-title {
+        max-width: 100px;
+    }
+}
+
+/* Touch Device Optimizations */
+@media (hover: none) and (pointer: coarse) {
+    /* Larger touch targets */
+    .action-btn {
+        min-width: 44px;
+        min-height: 44px;
+    }
+
+    .nav-link {
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+    }
+
+    .btn {
+        min-height: 44px;
+    }
+
+    /* Remove hover effects on touch devices */
+    .track-card:hover {
+        transform: none;
+    }
+
+    .genre-card:hover {
+        transform: none;
+    }
+
+    .artist-card:hover {
+        transform: none;
+    }
+}
+
+/* Landscape Orientation on Mobile */
+@media (max-width: 768px) and (orientation: landscape) {
+    .hero {
+        height: 250px;
+        margin-top: 80px;
+    }
+
+    .hero h1 {
+        font-size: 1.5rem;
+    }
+
+    .hero-buttons {
+        flex-direction: row;
+        justify-content: center;
+    }
+
+    .hero-buttons .btn {
+        width: auto;
+    }
+
+    .player-content {
+        flex-wrap: nowrap;
+    }
+
+    .player-controls {
+        order: 2;
+        width: auto;
+        margin-top: 0;
+    }
+
+    .time-display {
+        width: auto;
+        margin-top: 0;
     }
 }
 
