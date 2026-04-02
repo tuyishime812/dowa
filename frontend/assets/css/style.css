@@ -2021,3 +2021,128 @@ button {
     align-items: center;
 }
 }
+
+/* ============================================
+   Skeleton Loaders - For Faster Perceived Loading
+   ============================================ */
+
+.skeleton {
+    position: relative;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.skeleton::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.1),
+        transparent
+    );
+    transform: translateX(-100%);
+    animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+.skeleton-bg {
+    background: linear-gradient(
+        90deg,
+        var(--bg-card) 25%,
+        var(--bg-hover) 50%,
+        var(--bg-card) 75%
+    );
+    background-size: 200% 100%;
+    animation: loading 1.5s ease-in-out infinite;
+}
+
+@keyframes loading {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+.skeleton-text {
+    height: 16px;
+    background: var(--bg-hover);
+    border-radius: 4px;
+    margin: 8px 0;
+}
+
+.skeleton-title {
+    height: 20px;
+    width: 80%;
+    margin: 12px 0 8px;
+}
+
+.skeleton-artist {
+    height: 14px;
+    width: 60%;
+}
+
+.skeleton-meta {
+    height: 12px;
+    width: 40%;
+    margin-top: 8px;
+}
+
+.skeleton-bio {
+    height: 14px;
+    width: 90%;
+    margin: 8px 0;
+}
+
+.skeleton-btn {
+    height: 32px;
+    width: 32px;
+    border-radius: 50%;
+    background: var(--bg-hover);
+}
+
+/* Skeleton for Track Cards */
+.track-card.skeleton .track-cover {
+    background: var(--bg-card);
+}
+
+.track-card.skeleton .track-info {
+    pointer-events: none;
+}
+
+.track-card.skeleton .track-title,
+.track-card.skeleton .track-artist,
+.track-card.skeleton .track-meta {
+    visibility: hidden;
+}
+
+/* Skeleton for Track List */
+.track-item.skeleton .track-item-image {
+    background: var(--bg-card);
+}
+
+.track-item.skeleton .track-item-title,
+.track-item.skeleton .track-item-artist {
+    visibility: hidden;
+}
+
+/* Skeleton for Artists */
+.artist-card.skeleton .artist-image {
+    background: var(--bg-card);
+}
+
+.artist-card.skeleton .artist-name,
+.artist-card.skeleton .artist-bio {
+    visibility: hidden;
+}
