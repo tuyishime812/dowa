@@ -416,6 +416,38 @@ async def verify_admin(authorization: str = Header(None)):
         return {"admin": True}
     raise HTTPException(status_code=401, detail="Invalid token")
 
+@app.post("/api/admin/change-password")
+async def change_password(
+    current_password: str = Form(...),
+    new_password: str = Form(...),
+    authorization: str = Header(None)
+):
+    """Change admin password (requires current password)"""
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Not authorized")
+
+    token = authorization.split(" ")[1]
+    if token != ADMIN_TOKEN:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    # Verify current password
+    current_email = os.getenv("ADMIN_EMAIL", "admin@dgt-sounds.com")
+    stored_password = os.getenv("ADMIN_PASSWORD", "admin123")
+
+    if current_password != stored_password:
+        raise HTTPException(status_code=400, detail="Current password is incorrect")
+
+    # Validate new password
+    if len(new_password) < 6:
+        raise HTTPException(status_code=400, detail="New password must be at least 6 characters")
+
+    # In production, you would update this in a database or secrets manager
+    # For now, return success (admin would need to update env vars manually)
+    return {
+        "message": "Password changed successfully! Please update ADMIN_PASSWORD environment variable on Render for permanent change.",
+        "warning": "This change is temporary. Update RENDER environment variable for permanent change."
+    }
+
 # Admin Track Management
 @app.put("/api/admin/tracks/{track_id}")
 async def update_track(

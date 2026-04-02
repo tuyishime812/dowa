@@ -320,34 +320,41 @@
                         <form id="settingsForm">
                             <div class="form-group">
                                 <label>Admin Email</label>
-                                <input type="email" value="admin@dgt-sounds.com">
+                                <input type="email" value="admin@dgt-sounds.com" disabled>
+                                <small style="color: var(--text-muted);">To change email, update ADMIN_EMAIL environment variable on Render</small>
                             </div>
                             <div class="form-group">
-                                <label>Change Password</label>
-                                <input type="password" placeholder="New password">
+                                <label>Current Password</label>
+                                <input type="password" id="currentPassword" placeholder="Enter current password" required>
                             </div>
                             <div class="form-group">
-                                <label>Site Name</label>
-                                <input type="text" value="DGT-SOUNDS">
+                                <label>New Password</label>
+                                <input type="password" id="newPassword" placeholder="Enter new password (min 6 characters)" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Confirm New Password</label>
+                                <input type="password" id="confirmPassword" placeholder="Confirm new password" required>
                             </div>
                             <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save"></i> Save Settings
+                                <i class="fas fa-key"></i> Change Password
                             </button>
                         </form>
                     </div>
                     <div class="settings-card">
-                        <h3><i class="fas fa-database"></i> Database Management</h3>
-                        <div class="settings-actions">
-                            <button class="btn btn-secondary">
-                                <i class="fas fa-download"></i> Export Data
-                            </button>
-                            <button class="btn btn-secondary">
-                                <i class="fas fa-upload"></i> Import Data
-                            </button>
-                            <button class="btn btn-danger">
-                                <i class="fas fa-trash"></i> Clear All Data
-                            </button>
-                        </div>
+                        <h3><i class="fas fa-info-circle"></i> How to Change Credentials Permanently</h3>
+                        <ol style="margin-left: 20px; line-height: 2;">
+                            <li>Go to <a href="https://dashboard.render.com" target="_blank" style="color: var(--primary-color);">Render Dashboard</a></li>
+                            <li>Click on your service: <strong>dgt-sounds-api</strong></li>
+                            <li>Go to <strong>Environment</strong> tab</li>
+                            <li>Update these variables:
+                                <ul style="margin-top: 10px; margin-left: 20px;">
+                                    <li><code>ADMIN_EMAIL</code> = your-new-email@example.com</li>
+                                    <li><code>ADMIN_PASSWORD</code> = your-new-password</li>
+                                </ul>
+                            </li>
+                            <li>Click <strong>Save Changes</strong></li>
+                            <li>Wait for redeploy (~1 minute)</li>
+                        </ol>
                     </div>
                 </div>
             </div>
@@ -502,6 +509,6 @@
         // Set your backend API URL here for production
         window.API_BASE_URL = 'https://dgt-sounds-api.onrender.com';
     </script>
-    <script src="../assets/js/admin.v3.js"></script>
+    <script src="../assets/js/admin.v4.js"></script>
 </body>
 </html>
